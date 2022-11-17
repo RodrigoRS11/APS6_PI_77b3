@@ -1,0 +1,128 @@
+//APS 6 Semestre - Ciência da Computação - Unip Alphaville - Turma: CC6P06 - Prof Henry Ungaro
+//Alunos: Rodrigo, Everton, Felipe, Lucas e Matheus
+//Tema: Carrinho segue linha e reconhecedor de cores
+
+//Definição dos pinos de controle do motor
+#define M1 9 // Pino_Velocidade primeiro Motor ;
+#define M2 11 //Pino_Velocidade segundo Motor ;
+#define dir1 8 //Pino_Direção do 1º Motor: Para frente / Para trás (HIGH ou LOW);
+#define dir2 10 //Pino_Direção do 2º Motor: Para frente / Para trás (HIGH ou LOW);
+
+//Pino do led vermelho do carrinho
+int pinoledverm = 1;
+
+//Pinos de conexao do modulo RGB
+const int s0 = 3;
+const int s1 = 2;
+const int s2 = 12;
+const int s3 = 11;
+const int out = 4;
+
+//Variaveis cores
+int red = 0;
+int green = 0;
+int blue = 0;
+
+//Definição dos pinos dos sensores
+#define pin_S1 7
+#define pin_S2 6
+bool SensorLinha1 = 0;
+bool SensorLinha2 = 0;
+
+//variável que controlar a velocidade dos motores
+int velocidade = 150;
+
+//variável que libera o carrinho para andar
+bool goRun = false;
+
+void setup(){
+
+pinMode(M1, OUTPUT);
+pinMode(M2, OUTPUT);
+pinMode(dir1, OUTPUT);
+pinMode(dir2, OUTPUT);
+
+//Setamos os pinos do led vermelho como saída
+pinMode(pinoledverm, OUTPUT);
+
+//Setamos a direção inicial do motor como 1, isso fará com que ambos os motores parem
+digitalWrite(dir1, LOW);
+digitalWrite(dir2, LOW);
+
+//Setamos os pinos dos sensores como entrada
+pinMode(pin_S1, INPUT);
+pinMode(pin_S2, INPUT);
+
+//Setamos os pinos de controle do modulo RGB como saída
+pinMode(s0, OUTPUT);
+pinMode(s1, OUTPUT);
+pinMode(s2, OUTPUT);
+pinMode(s3, OUTPUT);
+pinMode(out, INPUT);
+Serial.begin(9600);
+digitalWrite(s0, HIGH);
+digitalWrite(s1, LOW);
+}
+
+void loop(){
+
+//Detecta a cor
+color();
+    
+//Armazenamos o valor lido pelo sensor infravermelho na variável.
+SensorLinha1 = digitalRead(pin_S1);
+SensorLinha2 = digitalRead(pin_S2);
+
+//Verifica se o carrinho pode andar
+if (goRun){
+  run();//Procedimento que faz o carrinho andar
+  if (blue < red && blue < green){//Verifica se a cor é amarela
+    digitalWrite(pinoledverm, HIGH); //Acende o led vermelho  
+  }
+  if (red < blue && red < green && red < 100) {//Verifica se a cor é vermelha
+    goRun = false;//Faz o carrinho parar de andar
+  }
+  
+}else{
+  if (green < red && green < blue){//Verifica se a cor é verde
+    goRun = true;//Faz o carrinho andar
+  }
+}
+
+}
+
+void run()
+{
+  //Procedimento que faz o carrinho andar
+  //cor branca o valor é 0 e para a cor preta o valor é 1.
+  if((SensorLinha1 == 1) && (SensorLinha2 == 1)){ // Se achar na extremidade das faixas duas cores pretas
+  analogWrite(M1, velocidade); // Ambos motores ligam na mesma velocidade
+  analogWrite(M2, velocidade);
+}
+
+  if((SensorLinha1 == 0) && (SensorLinha2 == 1)){ //Ao identificar um lado branco e o outro preto
+  analogWrite(M1, 0); //motor 1 desliga
+  analogWrite(M2, velocidade); // O motor 2 fica ligado, o carrinho vira para esquerda
+}
+
+  if((SensorLinha1 == 1) && (SensorLinha2 == 0)){ //Ao identificar um lado preto e o outro branco
+  analogWrite(M1, velocidade); //motor 1 liga
+  analogWrite(M2, 0); //motor 2 desliga, o carrinho vira para direita
+}
+  
+}
+
+void color()
+{
+  //Procedimento que le as cores
+  digitalWrite(s2, LOW);
+  digitalWrite(s3, LOW);
+  //count OUT, pRed, RED
+  red = pulseIn(out, digitalRead(out) == HIGH ? LOW : HIGH);
+  digitalWrite(s3, HIGH);
+  //count OUT, pBLUE, BLUE
+  blue = pulseIn(out, digitalRead(out) == HIGH ? LOW : HIGH);
+  digitalWrite(s2, HIGH);
+  //count OUT, pGreen, GREEN
+  green = pulseIn(out, digitalRead(out) == HIGH ? LOW : HIGH);
+}
