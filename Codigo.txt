@@ -4,18 +4,18 @@
 
 //Definição dos pinos de controle do motor
 #define M1 9 // Pino_Velocidade primeiro Motor ;
-#define M2 11 //Pino_Velocidade segundo Motor ;
+#define M2 15 //Pino_Velocidade segundo Motor ;
 #define dir1 8 //Pino_Direção do 1º Motor: Para frente / Para trás (HIGH ou LOW);
-#define dir2 10 //Pino_Direção do 2º Motor: Para frente / Para trás (HIGH ou LOW);
+#define dir2 14 //Pino_Direção do 2º Motor: Para frente / Para trás (HIGH ou LOW);
 
 //Pino do led vermelho do carrinho
-int pinoledverm = 1;
+int pinoledverm = 16;
 
 //Pinos de conexao do modulo RGB
 const int s0 = 3;
 const int s1 = 2;
 const int s2 = 12;
-const int s3 = 11;
+const int s3 = 13;
 const int out = 4;
 
 //Variaveis cores
@@ -30,7 +30,7 @@ bool SensorLinha1 = 0;
 bool SensorLinha2 = 0;
 
 //variável que controlar a velocidade dos motores
-int velocidade = 150;
+int velocidade = 130;
 
 //variável que libera o carrinho para andar
 bool goRun = false;
@@ -76,17 +76,37 @@ SensorLinha2 = digitalRead(pin_S2);
 //Verifica se o carrinho pode andar
 if (goRun){
   run();//Procedimento que faz o carrinho andar
-  if (blue < red && blue < green){//Verifica se a cor é amarela
-    digitalWrite(pinoledverm, HIGH); //Acende o led vermelho  
-  }
-  if (red < blue && red < green && red < 100) {//Verifica se a cor é vermelha
+  if (red < blue && red < green && red < 100 && green > 100 && blue > 52 && red > 25){//Verifica se a cor é vermelha
     goRun = false;//Faz o carrinho parar de andar
-  }
+    analogWrite(M1, 0); 
+    analogWrite(M2, 0);
+  }  
+  if (red < green && green < blue && green < 50 && red < 25 && blue > 45) {//Verifica se a cor é amarela
+    digitalWrite(pinoledverm, HIGH); //Acende o led vermelho
+    delay(200);
+    digitalWrite(pinoledverm, LOW);
+    delay(200);
+    digitalWrite(pinoledverm, HIGH); //Acende o led vermelho
+    delay(200);
+    digitalWrite(pinoledverm, LOW);    
+  } 
   
 }else{
   if (green < red && green < blue){//Verifica se a cor é verde
     goRun = true;//Faz o carrinho andar
   }
+  if (red < green && green < blue && green < 50 && red < 25 && blue > 45){
+    digitalWrite(pinoledverm, HIGH); //Acende o led vermelho
+    delay(200);
+    digitalWrite(pinoledverm, LOW);
+    delay(200);
+    digitalWrite(pinoledverm, HIGH); //Acende o led vermelho
+    delay(200);
+    digitalWrite(pinoledverm, LOW);
+    delay(3000);
+    goRun = true;
+  }
+  
 }
 
 }
@@ -126,3 +146,4 @@ void color()
   //count OUT, pGreen, GREEN
   green = pulseIn(out, digitalRead(out) == HIGH ? LOW : HIGH);
 }
+
